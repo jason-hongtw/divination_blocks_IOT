@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選擇祈福方式 - 廟宇靈</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- 📌 固定選單列 -->
+    <header>
+        <div class="logo">廟宇靈</div>
+        <nav>
+            <ul>
+                <li><a href="/">首頁</a></li>
+                <li><a href="/pray">前往祈福</a></li>
+                <li><a href="/contact">聯絡我們</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 📌 祈福方式選擇區 -->
+    <main>
+        <h1>請選擇您的祈福方式</h1>
+        <div class="card-container">
+            <div class="card-row">
+                <div class="card active" onclick="location.href='/pray/love'"><h3>姻緣</h3></div>
+                <div class="card disabled"><h3>事業</h3></div>
+                <div class="card disabled"><h3>健康</h3></div>
+            </div>
+            <div class="card-row">
+                <div class="card disabled"><h3>財運</h3></div>
+                <div class="card disabled"><h3>考試</h3></div>
+                <div class="card disabled"><h3>平安</h3></div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

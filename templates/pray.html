@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>姻緣祈福 - 廟宇靈</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function startThrow() {
+            document.getElementById("result").innerText = "擲茭中...";
+            fetch("/start_throw")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "processing") {
+                        checkResult();
+                    } else {
+                        document.getElementById("result").innerText = "擲茭失敗，請重試";
+                    }
+                });
+        }
+
+        function checkResult() {
+            setTimeout(() => {
+                fetch("/get_result")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "PENDING") {
+                            checkResult();
+                        } else if (data.status === "DONE") {
+                            document.getElementById("result").innerText = "擲茭結果：" + data.result;
+                            document.getElementById("resultImage").src = "{{ url_for('static', filename='images/') }}" + data.result + ".png";
+                            document.getElementById("throwBtn").disabled = false;
+                        }
+                    });
+            }, 1000);
+        }
+    </script>
+</head>
+<body>
+
+    <!-- 📌 固定選單列 -->
+    <header>
+        <div class="logo">廟宇靈</div>
+        <nav>
+            <ul>
+                <li><a href="/">首頁</a></li>
+                <li><a href="/pray">前往祈福</a></li>
+                <li><a href="/contact">聯絡我們</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 📌 祈福內容 -->
+    <main class="pray-container">
+
+        <!-- 📌 左側敘述區 -->
+        <section class="description">
+            <h2>姻緣祈福</h2>
+            <p>祈求美好姻緣，讓神明指引您遇見適合的另一半。</p>
+            <h2>參拜流程</h2>
+            <ol>
+                <li>準備供品並誠心祈禱</li>
+                <li>請示神明，獲取指引</li>
+                <li>可使用擲茭功能進一步詢問神明</li>
+            </ol>
+        </section>
+
+        <!-- 📌 正中間神明祈福區 -->
+        <section class="main-area">
+            <h2>神明</h2>
+            <img src="{{ url_for('static', filename='images/shenming.png') }}" alt="神明圖像">
+        </section>
+
+        <!-- 📌 右側附加功能區 -->
+        <section class="extra">
+
+            <!-- 📌 擲茭結果 & 擲茭視訊 -->
+            <h2>擲茭結果</h2>
+            <img id="resultImage" src="{{ url_for('static', filename='images/default.png') }}" alt="擲茭結果">
+            <img src="http://192.168.1.100:81/stream" alt="擲茭視訊畫面">
+
+            <!-- 📌 擲茭 / 抽籤 / 解籤 按鈕（橫向排列） -->
+            <div class="button-group">
+                <button id="throwBtn" onclick="startThrow()">擲茭</button>
+                <button class="disabled">抽籤</button>
+                <button class="disabled">解籤</button>
+            </div>
+
+            <!-- 📌 抽籤區（目前使用籤筒圖片） -->
+            <h2>抽籤</h2>
+            <img src="{{ url_for('static', filename='images/qiantong.png') }}" alt="籤筒">
+
+        </section>
+
+    </main>
+
+</body>
+</html>
