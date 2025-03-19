@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f5f5f5;
+    background-color: #f8f9fa; /* 淺灰背景 */
     text-align: center;
 }
 
@@ -136,7 +136,7 @@ nav ul li a:hover {
 }
 
 /* 📌 按鈕樣式 */
-button {
+.button-group button {
     background-color: #8B0000;
     color: white;
     border: none;
@@ -147,6 +147,47 @@ button {
     transition: background 0.3s;
 }
 
-button:hover {
+.button-group button:hover {
     background-color: #A52A2A;
+}
+
+.button-group button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.result-container {
+    margin-top: 20px; /* 確保與標題有間距 */
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 90%;
+    width: 600px;
+    margin: 20px auto;
+    box-sizing: border-box;
+}
+
+.poem-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.card h3 {
+    color: #8B0000;
+    margin-top: 0;
+}
+
+.card p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    word-wrap: break-word;
 }
