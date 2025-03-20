@@ -17,7 +17,7 @@
             </div>
             <div class="button-group d-flex justify-content-center gap-3 mb-4">
                 <button id="drawBtn" class="btn btn-primary" disabled>抽籤</button>
-                <button id="throwBtn" class="btn btn-primary" disabled>擲茭</button>
+                <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
                 <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
             </div>
             <h2 class="text-center mb-4">結果</h2>
@@ -59,14 +59,14 @@
         }
 
         function startThrow() {
-            document.getElementById("result").innerText = "擲茭中...";
+            document.getElementById("result").innerText = "擲杯中...";
             document.getElementById("throwBtn").disabled = true;
             fetch("/start_throw", { method: "POST" })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "PENDING") {
                         document.getElementById("result").innerText = 
-                            `本次結果：${data.result}（請繼續擲茭）\n目前累計聖茭${data.sacred_count}次`;
+                            `本次結果：${data.result}（請繼續擲杯）\n目前累計聖杯${data.sacred_count}次`;
                         document.getElementById("throwBtn").disabled = false;
                     } else if (data.status === "DONE") {
                         document.getElementById("result").innerText = data.result;
@@ -79,7 +79,7 @@
                         document.getElementById("interpretBtn").disabled = true;
                     }
                 })
-                .catch(error => console.error("擲茭錯誤:", error));
+                .catch(error => console.error("擲杯錯誤:", error));
         }
 
         function interpretLottery() {

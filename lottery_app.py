@@ -36,7 +36,7 @@ def draw_lottery():
 
 @app.route("/start_throw", methods=["POST"])
 def start_throw():
-    print("[DEBUG] 擲茭請求收到")
+    print("[DEBUG] 擲杯請求收到")
     possible_results = ["聖杯", "笑杯", "蓋杯"]
     # result = random.choice(possible_results)  # 目前採random做法
 
@@ -54,7 +54,7 @@ def start_throw():
     if predicted_class_name == "聖杯":
         session["sacred_count"] = session.get("sacred_count", 0) + 1
         if session["sacred_count"] == 3:
-            return jsonify({"status": "DONE", "result": "三次聖茭達成"})
+            return jsonify({"status": "DONE", "result": "三次聖杯達成"})
         return jsonify({
             "status": "PENDING",
             "result": predicted_class_name,
@@ -63,7 +63,7 @@ def start_throw():
     else:
         session["throw_count"] = 0
         session["sacred_count"] = 0
-        return jsonify({"status": "FAILED", "result": "非聖茭，需重新抽籤"})
+        return jsonify({"status": "FAILED", "result": "非聖杯，需重新抽籤"})
 
 
 @app.route("/interpret_lottery", methods=["POST"])

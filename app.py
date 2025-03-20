@@ -12,18 +12,18 @@ UPLOAD_FOLDER = "uploads"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# 載入訓練好的擲茭辨識模型
+# 載入訓練好的擲杯辨識模型
 MODEL_PATH = "thrown_cup_classifier.h5"
 model = tf.keras.models.load_model(MODEL_PATH)
 
-# 定義擲茭結果類別名稱（與模型輸出對應）
+# 定義擲杯結果類別名稱（與模型輸出對應）
 class_names = ["A_sacred", "B_laughing", "C_angry"]
 
 def predict_cup(image_path):
     """
-    讀取影像並使用 CNN 模型進行擲茭結果辨識
+    讀取影像並使用 CNN 模型進行擲杯結果辨識
     :param image_path: 上傳影像的檔案路徑
-    :return: 擲茭結果類別（A_sacred, B_laughing, C_angry）
+    :return: 擲杯結果類別（A_sacred, B_laughing, C_angry）
     """
     img = cv2.imread(image_path)  # 讀取圖片
     img = cv2.resize(img, (224, 224)) / 255.0  # 調整大小 & 標準化
@@ -34,11 +34,11 @@ def predict_cup(image_path):
     
     return class_names[predicted_class]  # 回傳預測結果
 
-# API 1: 上傳 ESP-32S 擷取的擲茭影像
+# API 1: 上傳 ESP-32S 擷取的擲杯影像
 @app.route("/upload_frame", methods=["POST"])
 def upload_frame():
     """
-    ESP-32S 透過此 API 上傳擲茭影像
+    ESP-32S 透過此 API 上傳擲杯影像
     影像將被存入 uploads/latest.jpg，供後續辨識
     """
     if "file" not in request.files:
@@ -62,12 +62,12 @@ def pray_page(category):
     else:
         return "尚未開放", 404
 
-# API 3: 顯示擲茭網頁（可視化介面）
+# API 3: 顯示擲杯網頁（可視化介面）
 @app.route("/")
 def home():
     """
-    提供擲茭的主網頁
-    信徒可以在此觀看擲茭結果（未來擴充）
+    提供擲杯的主網頁
+    信徒可以在此觀看擲杯結果（未來擴充）
     """
     return render_template("index.html")
 

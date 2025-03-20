@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>
         function startThrow() {
-            document.getElementById("result").innerText = "擲茭中...";
+            document.getElementById("result").innerText = "擲杯中...";
             fetch("/start_throw")
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "processing") {
                         checkResult();
                     } else {
-                        document.getElementById("result").innerText = "擲茭失敗，請重試";
+                        document.getElementById("result").innerText = "擲杯失敗，請重試";
                     }
                 });
         }
@@ -27,7 +27,7 @@
                         if (data.status === "PENDING") {
                             checkResult();
                         } else if (data.status === "DONE") {
-                            document.getElementById("result").innerText = "擲茭結果：" + data.result;
+                            document.getElementById("result").innerText = "擲杯結果：" + data.result;
                             document.getElementById("resultImage").src = "{{ url_for('static', filename='images/') }}" + data.result + ".png";
                             document.getElementById("throwBtn").disabled = false;
                         }
@@ -61,7 +61,7 @@
             <ol>
                 <li>準備供品並誠心祈禱</li>
                 <li>請示神明，獲取指引</li>
-                <li>可使用擲茭功能進一步詢問神明</li>
+                <li>可使用擲杯功能進一步詢問神明</li>
             </ol>
         </section>
 
@@ -74,14 +74,14 @@
         <!-- 📌 右側附加功能區 -->
         <section class="extra">
 
-            <!-- 📌 擲茭結果 & 擲茭視訊 -->
-            <h2>擲茭結果</h2>
-            <img id="resultImage" src="{{ url_for('static', filename='images/default.png') }}" alt="擲茭結果">
-            <img src="http://192.168.1.100:81/stream" alt="擲茭視訊畫面">
+            <!-- 📌 擲杯結果 & 擲杯視訊 -->
+            <h2>擲杯結果</h2>
+            <img id="resultImage" src="{{ url_for('static', filename='images/default.png') }}" alt="擲杯結果">
+            <img src="http://192.168.1.100:81/stream" alt="擲杯視訊畫面">
 
-            <!-- 📌 擲茭 / 抽籤 / 解籤 按鈕（橫向排列） -->
+            <!-- 📌 擲杯 / 抽籤 / 解籤 按鈕（橫向排列） -->
             <div class="button-group">
-                <button id="throwBtn" onclick="startThrow()">擲茭</button>
+                <button id="throwBtn" onclick="startThrow()">擲杯</button>
                 <button class="disabled">抽籤</button>
                 <button class="disabled">解籤</button>
             </div>
