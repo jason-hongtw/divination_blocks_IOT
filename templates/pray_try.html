@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>抽籤與解籤 - 廟宇靈</title>
-    <!-- 引入 Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -12,18 +11,44 @@
     <main class="container my-5">
         <section class="extra">
             <h2 class="text-center mb-4">詢問神明</h2>
-            <div class="mb-3">
-                <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" oninput="checkInput()">
-            </div>
+            <form id="userForm" class="mb-3">
+                <!-- 姓名（必填） -->
+                <div class="mb-3">
+                    <label for="userName" class="form-label">姓名 <span class="text-danger">*</span></label>
+                    <input type="text" id="userName" class="form-control" placeholder="請輸入您的姓名" required oninput="checkInput()">
+                </div>
+
+                <!-- 生辰（非必填） -->
+                <div class="mb-3">
+                    <label for="userBirth" class="form-label">生辰（西元年月日時分，例如：1990-01-01 14:30）</label>
+                    <input type="text" id="userBirth" class="form-control" placeholder="選填，例如：1990-01-01 14:30" oninput="checkInput()">
+                </div>
+
+                <!-- 地址（必填，單行） -->
+                <div class="mb-3">
+                    <label for="userAddress" class="form-label">地址 <span class="text-danger">*</span></label>
+                    <input type="text" id="userAddress" class="form-control" placeholder="請輸入完整地址，例如：台灣台北市中正區忠孝東路一段1號" required oninput="checkInput()">
+                    <small class="form-text text-muted">需填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
+                </div>
+
+                <!-- 問題（必填） -->
+                <div class="mb-3">
+                    <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
+                    <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" required oninput="checkInput()">
+                </div>
+            </form>
+
             <div class="button-group d-flex justify-content-center gap-3 mb-4">
                 <button id="drawBtn" class="btn btn-primary" disabled>抽籤</button>
                 <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
                 <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
             </div>
+
             <h2 class="text-center mb-4">結果</h2>
             <div id="result" class="result-container"></div>
         </section>
     </main>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -34,16 +59,20 @@
         });
 
         function checkInput() {
+            const name = document.getElementById("userName").value.trim();
+            const address = document.getElementById("userAddress").value.trim();
             const question = document.getElementById("userQuestion").value.trim();
-            document.getElementById("drawBtn").disabled = question === "";
+
+            const isValid = name !== "" && address !== "" && question !== "";
+            document.getElementById("drawBtn").disabled = !isValid;
         }
 
         function startDraw() {
+            const name = document.getElementById("userName").value.trim();
+            const birth = document.getElementById("userBirth").value.trim();
+            const address = document.getElementById("userAddress").value.trim();
             const question = document.getElementById("userQuestion").value.trim();
-            if (question === "") {
-                document.getElementById("result").innerText = "請先輸入您的問題！";
-                return;
-            }
+
             document.getElementById("result").innerText = "抽籤中...";
             fetch("/draw_lottery", { method: "POST" })
                 .then(response => response.json())
@@ -84,11 +113,15 @@
 
         function interpretLottery() {
             document.getElementById("result").innerText = "解籤中...";
+            const name = document.getElementById("userName").value.trim();
+            const birth = document.getElementById("userBirth").value.trim();
+            const address = document.getElementById("userAddress").value.trim();
             const question = document.getElementById("userQuestion").value;
+
             fetch("/interpret_lottery", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: question })
+                body: JSON.stringify({ name, birth, address, question })
             })
                 .then(response => response.json())
                 .then(data => {
