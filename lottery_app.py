@@ -6,6 +6,8 @@ import time
 import numpy as np
 from flask import Flask, request, jsonify, render_template, session
 from teachable_machine_eval import load_model, load_image_for_model
+import threading
+import time
 
 app = Flask(__name__)
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -14,6 +16,8 @@ if not OPENAI_API_KEY:
     raise ValueError("請設定環境變數 OPENAI_API_KEY")
 
 lottery_data = pd.read_csv("lottery.csv")
+restricted_ips = {}
+lock = threading.Lock()
 tm_model = load_model("model.savedmodel")
 
 @app.route("/draw_lottery", methods=["POST"])
@@ -35,9 +39,17 @@ def draw_lottery():
 @app.route("/start_throw", methods=["POST"])
 def start_throw():
     print("[DEBUG] 擲杯請求收到")
+    client_ip = request.remote_addr
+
+    # 檢查 IP 是否被限制
+    with lock:
+        if client_ip in restricted_ips and time.time() < restricted_ips[client_ip]:
+            remaining_time = int(restricted_ips[client_ip] - time.time())
+            return jsonify({"status": "BLOCKED", "result": f"因先前擲出蓋杯，您的IP已被限制，請於 {remaining_time} 秒後再試"})
+    
     possible_results = ["聖杯", "笑杯", "蓋杯"]
 
-    # 讀取圖片並且辨識
+    # 讀取圖片並辨識
     img_array = load_image_for_model("latest.jpg")
     predictions = tm_model(img_array)
     predicted_class = np.argmax(predictions)
@@ -46,20 +58,28 @@ def start_throw():
     prediction_message = f"擲杯結果: {predicted_class_name} {np.round(confidence_score*100, 2)}"
     app.logger.info(prediction_message)
 
-    session["throw_count"] = session.get("throw_count", 0) + 1
-    if predicted_class_name == "聖杯":
-        session["sacred_count"] = session.get("sacred_count", 0) + 1
-        if session["sacred_count"] == 3:
-            return jsonify({"status": "DONE", "result": "三次聖杯達成"})
-        return jsonify({
-            "status": "PENDING",
-            "result": predicted_class_name,
-            "sacred_count": session["sacred_count"]
-        })
-    else:
-        session["throw_count"] = 0
-        session["sacred_count"] = 0
-        return jsonify({"status": "FAILED", "result": "非聖杯，需重新抽籤"})
+    # 如果是後續擲杯，計入 session
+    if "current_poem" in session:
+        session["throw_count"] = session.get("throw_count", 0) + 1
+        if predicted_class_name == "聖杯":
+            session["sacred_count"] = session.get("sacred_count", 0) + 1
+            if session["sacred_count"] == 3:
+                return jsonify({"status": "DONE", "result": "三次聖杯達成"})
+            return jsonify({
+                "status": "PENDING",
+                "result": predicted_class_name,
+                "sacred_count": session["sacred_count"]
+            })
+        else:
+            session["throw_count"] = 0
+            session["sacred_count"] = 0
+            return jsonify({"status": "FAILED", "result": "非聖杯，需重新抽籤"})
+    
+    # 前置擲杯，直接返回結果
+    if predicted_class_name == "蓋杯":
+        with lock:
+            restricted_ips[client_ip] = time.time() + 300  # 限制 5 分鐘
+    return jsonify({"status": "PRE_THROW", "result": predicted_class_name})
 
 @app.route("/interpret_lottery", methods=["POST"])
 def interpret_lottery():

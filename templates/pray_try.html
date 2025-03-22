@@ -31,6 +31,14 @@
                     <small class="form-text text-muted">需填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
                 </div>
 
+                <!-- 前置擲杯按鈕 -->
+                <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                    <button id="preThrowBtn" class="btn btn-primary" disabled>擲杯，請問神明在嗎</button>
+                </div>
+
+                <!-- 前置擲杯結果 -->
+                <div id="preThrowResult" class="result-container mb-4"></div>
+
                 <!-- 問題（必填） -->
                 <div class="mb-3">
                     <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
@@ -55,6 +63,7 @@
             document.getElementById("drawBtn").addEventListener("click", startDraw);
             document.getElementById("throwBtn").addEventListener("click", startThrow);
             document.getElementById("interpretBtn").addEventListener("click", interpretLottery);
+            document.getElementById("preThrowBtn").addEventListener("click", startPreThrow);
             checkInput();
         });
 
@@ -62,10 +71,16 @@
             const name = document.getElementById("userName").value.trim();
             const address = document.getElementById("userAddress").value.trim();
             const question = document.getElementById("userQuestion").value.trim();
-
-            const isValid = name !== "" && address !== "" && question !== "";
-            document.getElementById("drawBtn").disabled = !isValid;
+            const isValid = name !== "" && address !== "";
+            document.getElementById("preThrowBtn").disabled = !isValid;
+            document.getElementById("drawBtn").disabled = true; // 初始禁用，直到前置擲杯成功
+            if (document.getElementById("userQuestion").disabled === false) {
+                document.getElementById("drawBtn").disabled = !isValid || question === "";
+            }
         }
+        
+        // 初始化時禁用問題欄位和後續按鈕
+        updateFormState(false);
 
         function startDraw() {
             const name = document.getElementById("userName").value.trim();
@@ -141,6 +156,49 @@
                     document.getElementById("interpretBtn").disabled = true;
                 })
                 .catch(error => console.error("解籤錯誤:", error));
+        }
+
+        function updateFormState(isEnabled) {
+            document.getElementById("userQuestion").disabled = !isEnabled;
+            document.getElementById("drawBtn").disabled = !isEnabled || document.getElementById("userQuestion").value.trim() === "";
+            document.getElementById("throwBtn").disabled = true;
+            document.getElementById("interpretBtn").disabled = true;
+        }
+
+        function startPreThrow() {
+            document.getElementById("preThrowResult").innerText = "擲杯中...";
+            document.getElementById("preThrowBtn").disabled = true;
+            fetch("/start_throw", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result === "聖杯") {
+                        document.getElementById("preThrowResult").innerText = "您擲出聖杯，神明已回應，請繼續提出您的問題。";
+                        updateFormState(true);
+                    } else if (data.result === "笑杯") {
+                        document.getElementById("preThrowResult").innerText = "您擲出笑杯，\n意旨資訊填寫有誤或是資訊填寫不完整，填寫妥善後再重新擲杯。";
+                        document.getElementById("preThrowBtn").disabled = false;
+                        updateFormState(false);
+                    } else if (data.result === "蓋杯") {
+                        document.getElementById("preThrowResult").innerText = "您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。";
+                        let countdown = 10;
+                        const countdownInterval = setInterval(() => {
+                            document.getElementById("preThrowResult").innerText = 
+                                `您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。\n即將斷開連線 ${countdown}...`;
+                            countdown--;
+                            if (countdown < 0) {
+                                clearInterval(countdownInterval);
+                                document.getElementById("preThrowResult").innerText = "連線已斷開，請五分鐘後再試。";
+                                document.getElementById("preThrowBtn").disabled = true;
+                            }
+                        }, 1000);
+                        updateFormState(false);
+                    }
+                })
+                .catch(error => {
+                    console.error("前置擲杯錯誤:", error);
+                    document.getElementById("preThrowResult").innerText = "擲杯失敗，請稍後再試。";
+                    document.getElementById("preThrowBtn").disabled = false;
+                });
         }
     </script>
 </body>
