@@ -53,16 +53,22 @@ def start_throw():
     print("[DEBUG] 擲杯請求收到")
     client_ip = request.remote_addr
 
-    # 檢查 IP 是否被限制
     with lock:
         if client_ip in restricted_ips and time.time() < restricted_ips[client_ip]:
             remaining_time = int(restricted_ips[client_ip] - time.time())
             return jsonify({"status": "BLOCKED", "result": f"因先前擲出蓋杯，您的IP已被限制，請於 {remaining_time} 秒後再試"})
-    
-    possible_results = ["聖杯", "笑杯", "蓋杯"]
 
-    # 讀取圖片並辨識
-    img_array = load_image_for_model("latest.jpg")
+    possible_results = ["聖杯", "笑杯", "蓋杯"]
+    image_files = ["positive.jpg", "negative.jpg", "undefined.jpg"]
+    selected_image = random.choice(image_files)
+    app.logger.info(f"選中的圖片: {selected_image}")
+
+    try:
+        img_array = load_image_for_model(selected_image)
+    except Exception as e:
+        app.logger.error(f"圖片載入失敗: {str(e)}")
+        return jsonify({"status": "error", "result": f"擲杯圖片載入失敗（{selected_image}），請確認圖片是否存在"}), 500
+
     predictions = tm_model(img_array)
     predicted_class = np.argmax(predictions)
     predicted_class_name = possible_results[predicted_class]
@@ -70,13 +76,17 @@ def start_throw():
     prediction_message = f"擲杯結果: {predicted_class_name} {np.round(confidence_score*100, 2)}"
     app.logger.info(prediction_message)
 
-    # 如果是後續擲杯，計入 session
-    if "current_poem" in session:
+    data = request.json or {}
+    is_pre_throw = data.get("is_pre_throw", False)
+    is_can_ask = data.get("is_can_ask", False)  # 新增標誌
+
+    if not is_pre_throw and "current_poem" in session:
+        # 後續擲杯邏輯
         session["throw_count"] = session.get("throw_count", 0) + 1
         if predicted_class_name == "聖杯":
             session["sacred_count"] = session.get("sacred_count", 0) + 1
             if session["sacred_count"] == 3:
-                return jsonify({"status": "DONE", "result": "三次聖杯達成"})
+                return jsonify({"status": "DONE", "result": "三次聖杯達成，請擲杯，看神明是否指示繼續抽籤"})
             return jsonify({
                 "status": "PENDING",
                 "result": predicted_class_name,
@@ -86,12 +96,14 @@ def start_throw():
             session["throw_count"] = 0
             session["sacred_count"] = 0
             return jsonify({"status": "FAILED", "result": "非聖杯，需重新抽籤"})
-    
-    # 前置擲杯，直接返回結果
-    if predicted_class_name == "蓋杯":
-        with lock:
-            restricted_ips[client_ip] = time.time() + 300  # 限制 5 分鐘
-    return jsonify({"status": "PRE_THROW", "result": predicted_class_name})
+    else:
+        # 前置擲杯邏輯
+        if predicted_class_name == "蓋杯" and not is_can_ask:  # 只有非 canAskBtn 的蓋杯才限制 IP
+            with lock:
+                restricted_ips[client_ip] = time.time() + 300  # 限制 5 分鐘
+        result = {"status": "PRE_THROW", "result": predicted_class_name}
+        print("[DEBUG] 擲杯回傳:", result)
+        return jsonify(result)
 
 @app.route("/get_current_poem", methods=["GET"])
 def get_current_poem():
@@ -171,6 +183,15 @@ def interpret_lottery():
         "poems": poems_data,
         "interpretation": interpretation
     })
+
+@app.route("/check_ip_restriction", methods=["GET"])
+def check_ip_restriction():
+    client_ip = request.remote_addr
+    with lock:
+        if client_ip in restricted_ips and time.time() < restricted_ips[client_ip]:
+            remaining_time = int(restricted_ips[client_ip] - time.time())
+            return jsonify({"status": "BLOCKED", "remaining_time": remaining_time})
+        return jsonify({"status": "OK"})
 
 @app.route("/")
 def home():

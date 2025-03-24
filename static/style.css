@@ -79,6 +79,11 @@ main {
     cursor: not-allowed;
 }
 
+.form-text {
+    display: block;
+    margin-bottom: 5px;
+}
+
 /* 📌 結果區域 */
 .result-container {
     margin-top: 20px;
@@ -98,12 +103,30 @@ main {
     width: 100%;
 }
 
+/* 已抽到的籤詩容器，橫向並排 */
+#drawnPoems {
+    display: flex;
+    flex-wrap: nowrap; /* 不換行，橫向並排 */
+    overflow-x: auto; /* 如果籤詩數量多，允許水平滾動 */
+    gap: 20px; /* 卡片之間的間距 */
+    margin-bottom: 20px;
+}
+
+.poem-card {
+    flex: 0 0 auto; /* 不拉伸，保持內容寬度 */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    width: 200px; /* 固定寬度，根據需要調整 */
+    text-align: center;
+}
+
 .poem-image {
     max-width: 100%;
     height: auto;
     border-radius: 5px;
-    margin-bottom: 15px;
-    display: block;
+    margin-bottom: 10px;
 }
 
 .card h3 {

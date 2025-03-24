@@ -9,26 +9,43 @@
 </head>
 <body>
     <main class="container my-5">
+        <!-- IP 限制彈出視窗 -->
+        <div class="modal fade" id="ipRestrictedModal" tabindex="-1" aria-labelledby="ipRestrictedModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ipRestrictedModalLabel">IP 限制中</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>因先前擲出蓋杯，您的 IP 已被限制，請等待 <span id="remainingTime"></span> 秒後再試。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <section class="extra">
-            <h2 class="text-center mb-4">詢問神明</h2>
+            <div class="mb-4">
+                <h2 class="text-center">詢問神明</h2>
+                <small class="form-text text-muted">注意：所有資訊請照範例格式填寫，並盡可能填寫完整，避免影響神明溝通</small>
+            </div>
             <form id="userForm" class="mb-3">
                 <!-- 姓名（必填） -->
                 <div class="mb-3">
-                    <label for="userName" class="form-label">姓名 <span class="text-danger">*</span></label>
+                    <label for="userName" class="form-label">姓名(必填) <span class="text-danger">*</span></label>
                     <input type="text" id="userName" class="form-control" placeholder="請輸入您的姓名" required oninput="checkInput()">
                 </div>
 
                 <!-- 生辰（非必填） -->
                 <div class="mb-3">
-                    <label for="userBirth" class="form-label">生辰（西元年月日時分，例如：1990-01-01 14:30）</label>
+                    <label for="userBirth" class="form-label">生辰</label>
+                    <small class="form-text text-muted">範例：西元年月日時分，例如：1990-01-01 14:30</small>
                     <input type="text" id="userBirth" class="form-control" placeholder="選填，例如：1990-01-01 14:30" oninput="checkInput()">
                 </div>
 
                 <!-- 地址（必填，單行） -->
                 <div class="mb-3">
-                    <label for="userAddress" class="form-label">地址 <span class="text-danger">*</span></label>
+                    <label for="userAddress" class="form-label">地址(必填) <span class="text-danger">*</span></label>
+                    <small class="form-text text-muted">提示：請填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
                     <input type="text" id="userAddress" class="form-control" placeholder="請輸入完整地址，例如：台灣台北市中正區忠孝東路一段1號" required oninput="checkInput()">
-                    <small class="form-text text-muted">需填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
                 </div>
 
                 <!-- 前置擲杯按鈕 -->
@@ -42,8 +59,17 @@
                 <!-- 問題（必填） -->
                 <div class="mb-3">
                     <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
-                    <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" required oninput="checkInput()">
+                    <small class="form-text text-muted">提示：問題請語意清楚且詳盡</small>
+                    <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" disabled oninput="checkInput(); resetCanAskState();">
                 </div>
+
+                <!-- 確認問題擲杯按鈕 -->
+                <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                    <button id="canAskBtn" class="btn btn-primary" disabled>是否能問這個問題</button>
+                </div>   
+
+                <!-- 是否能問這個問題擲杯結果 -->
+                <div id="canAskResult" class="text-center result-container mb-4" style="display: none;"></div>
             </form>
 
             <div class="button-group d-flex justify-content-center gap-3 mb-4">
@@ -51,6 +77,17 @@
                 <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
                 <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
             </div>
+
+            <!-- 擲杯結果區塊 -->
+            <div id="result" class="result-container mb-4"></div>
+
+            <!-- 是否再多抽一支籤按鈕 -->
+            <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                <button id="moreThrowBtn" class="btn btn-primary" disabled>擲杯，是否再多抽一支籤</button>
+            </div>
+
+            <!-- 是否再多抽一支籤結果 -->
+            <div id="moreThrowResult" class="result-container mb-4"></div>
 
             <h2 class="text-center mb-4">結果</h2>
 
@@ -61,17 +98,6 @@
             <!-- 已抽到的籤 -->
             <h3 class="text-center mb-3">已抽到的籤</h3>
             <div id="drawnPoems" class="result-container mb-4"></div>
-
-            <!-- 原有結果區塊 -->
-            <div id="result" class="result-container mb-4"></div>
-
-            <!-- 是否再多抽一支籤按鈕 -->
-            <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                <button id="moreThrowBtn" class="btn btn-primary" disabled>擲杯，是否再多抽一支籤</button>
-            </div>
-
-            <!-- 是否再多抽一支籤結果 -->
-            <div id="moreThrowResult" class="result-container mb-4"></div>
         </section>
     </main>
 
@@ -81,6 +107,11 @@
         // 用於儲存已抽到的籤詩
         let drawnPoems = [];
         let currentPoemIds = [];
+        let hasReceivedHolyCup = false;
+        let preThrowState = {
+            result: null, // "聖杯", "笑杯", "蓋杯" 或 null
+            isLocked: false // 是否鎖定 preThrowBtn
+        };
 
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("drawBtn").addEventListener("click", startDraw);
@@ -88,19 +119,71 @@
             document.getElementById("interpretBtn").addEventListener("click", interpretLottery);
             document.getElementById("preThrowBtn").addEventListener("click", startPreThrow);
             document.getElementById("moreThrowBtn").addEventListener("click", startMoreThrow);
+            document.getElementById("canAskBtn").addEventListener("click", startCanAsk); // 新增按鈕事件
+            // 檢查 IP 限制狀態
+            checkIpRestriction();
+
             checkInput();
         });
+
+        function showRestrictedModal(remainingTime) {
+            const modalElement = document.getElementById("ipRestrictedModal");
+            const remainingTimeSpan = document.getElementById("remainingTime");
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: 'static', // 防止點擊背景關閉
+                keyboard: false     // 防止用鍵盤關閉
+            });           
+
+            let timeLeft = remainingTime;
+            remainingTimeSpan.innerText = timeLeft;           
+
+            modal.show();             
+
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                remainingTimeSpan.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    modal.hide();
+                    // 可選：重新啟用表單
+                    checkInput();
+                }
+            }, 1000);
+        }
+
+        function checkIpRestriction() {
+            fetch("/check_ip_restriction", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("IP 限制檢查:", data); // 調試用
+                    if (data.status === "BLOCKED") {
+                        showRestrictedModal(data.remaining_time);
+                    }
+                })
+                .catch(error => {
+                    console.error("檢查 IP 限制錯誤:", error);
+                });
+        }
 
         function checkInput() {
             const name = document.getElementById("userName").value.trim();
             const address = document.getElementById("userAddress").value.trim();
             const question = document.getElementById("userQuestion").value.trim();
-            const isValid = name !== "" && address !== "";
-            document.getElementById("preThrowBtn").disabled = !isValid;
-            document.getElementById("drawBtn").disabled = true; // 初始禁用，直到前置擲杯成功
-            if (document.getElementById("userQuestion").disabled === false) {
-                document.getElementById("drawBtn").disabled = !isValid || question === "";
+            const isValid = name !== "" && address !== "";      
+
+            // 控制 preThrowBtn
+            if (!preThrowState.isLocked) {
+                document.getElementById("preThrowBtn").disabled = !isValid;
             }
+        
+            // 控制 canAskBtn：問題欄有輸入時啟用
+            document.getElementById("canAskBtn").disabled = question === "" || document.getElementById("userQuestion").disabled;
+        
+            // drawBtn 保持禁用，直到是否能問這個問題得到聖杯
+            document.getElementById("drawBtn").disabled = true;
         }
         
         // 初始化時禁用問題欄位和後續按鈕
@@ -121,11 +204,23 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "success") {
-                        document.getElementById("currentPoem").innerText = `抽到籤:\n` + data.poem;
-                        document.getElementById("drawBtn").disabled = true;
-                        document.getElementById("throwBtn").disabled = false;
-                        document.getElementById("interpretBtn").disabled = true;
-                        document.getElementById("moreThrowBtn").disabled = true;
+                        fetch("/get_current_poem", { method: "GET" })
+                            .then(response => response.json())
+                            .then(poemData => {
+                                document.getElementById("currentPoem").innerHTML = `
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h3 class="card-title">籤詩 ID：${poemData.id}</h3>
+                                            <p class="card-text">${poemData.poem}</p>
+                                        </div>
+                                    </div>
+                                `;
+                                document.getElementById("drawBtn").disabled = true;
+                                document.getElementById("throwBtn").disabled = false;
+                                document.getElementById("interpretBtn").disabled = true;
+                                document.getElementById("moreThrowBtn").disabled = true;
+                            })
+                            .catch(error => console.error("獲取籤詩錯誤:", error));
                     }
                 })
                 .catch(error => {
@@ -137,23 +232,29 @@
         function startThrow() {
             document.getElementById("result").innerText = "擲杯中...";
             document.getElementById("throwBtn").disabled = true;
-            fetch("/start_throw", { method: "POST" })
-                .then(response => response.json())
+            fetch("/start_throw", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}) // 傳遞空的 JSON 物件
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.status === "PENDING") {
                         document.getElementById("result").innerText = 
                             `本次結果：${data.result}（請繼續擲杯）\n目前累計聖杯${data.sacred_count}次`;
                         document.getElementById("throwBtn").disabled = false;
                     } else if (data.status === "DONE") {
-                        // 顯示籤詩 ID 和內容，並移動到「已抽到的籤」
                         fetch("/get_current_poem", { method: "GET" })
                             .then(response => response.json())
                             .then(poemData => {
                                 drawnPoems.push(poemData);
                                 currentPoemIds.push(poemData.id);
-                                // 清空「此次籤詩」
                                 document.getElementById("currentPoem").innerText = "";
-                                // 更新「已抽到的籤」
                                 let drawnHtml = "";
                                 drawnPoems.forEach(poem => {
                                     drawnHtml += `
@@ -180,7 +281,11 @@
                         document.getElementById("moreThrowBtn").disabled = true;
                     }
                 })
-                .catch(error => console.error("擲杯錯誤:", error));
+                .catch(error => {
+                    console.error("擲杯錯誤:", error);
+                    document.getElementById("result").innerText = "擲杯失敗，請稍後再試。";
+                    document.getElementById("throwBtn").disabled = false;
+                });
         }
 
         function interpretLottery() {
@@ -197,7 +302,22 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    let resultHtml = `
+                    console.log("解籤響應:", data); // 添加日誌
+                    // 顯示所有已抽到的籤詩（包含圖片，橫向並排）
+                    let poemsHtml = "";
+                    data.poems.forEach(poem => {
+                        poemsHtml += `
+                            <div class="poem-card">
+                                <img src="/static/poem_img/poem_${poem.id}.png" alt="籤詩圖片 ${poem.id}" class="poem-image">
+                                <h4>籤詩 ID：${poem.id}</h4>
+                                <p>${poem.poem}</p>
+                            </div>
+                        `;
+                    });
+                
+                    // 渲染已抽到的籤詩和解籤結果
+                    document.getElementById("drawnPoems").innerHTML = poemsHtml;
+                    document.getElementById("result").innerHTML = `
                         <div class="card">
                             <div class="card-body">
                                 <h3 class="card-title">綜合解籤</h3>
@@ -205,17 +325,35 @@
                             </div>
                         </div>
                     `;
-                    document.getElementById("result").innerHTML = resultHtml;
-                    document.getElementById("currentPoem").innerText = ""; // 清空「此次籤詩」
-                    document.getElementById("drawBtn").disabled = false;
+                    
+                    // 清空「此次籤詩」並禁用所有按鈕
+                    document.getElementById("currentPoem").innerText = "";
+                    document.getElementById("preThrowBtn").disabled = true;
+                    document.getElementById("drawBtn").disabled = true;
                     document.getElementById("throwBtn").disabled = true;
                     document.getElementById("interpretBtn").disabled = true;
                     document.getElementById("moreThrowBtn").disabled = true;
+                    
+                    // 重置狀態
+                    preThrowState.result = null;
+                    preThrowState.isLocked = false;
+                    document.getElementById("preThrowResult").innerText = "";
+                    updateFormState(false);
+                    
+                    // 清空已抽到的籤詩紀錄，準備開始新一輪（但不啟用按鈕）
                     drawnPoems = [];
                     currentPoemIds = [];
-                    document.getElementById("drawnPoems").innerHTML = ""; // 清空「已抽到的籤」
                 })
-                .catch(error => console.error("解籤錯誤:", error));
+                .catch(error => {
+                    console.error("解籤錯誤:", error);
+                    document.getElementById("result").innerText = "解籤失敗，請稍後再試。";
+                    // 即使失敗，也禁用所有按鈕，避免混亂
+                    document.getElementById("preThrowBtn").disabled = true;
+                    document.getElementById("drawBtn").disabled = true;
+                    document.getElementById("throwBtn").disabled = true;
+                    document.getElementById("interpretBtn").disabled = true;
+                    document.getElementById("moreThrowBtn").disabled = true;
+                });
         }
 
         function updateFormState(isEnabled) {
@@ -228,30 +366,51 @@
         function startPreThrow() {
             document.getElementById("preThrowResult").innerText = "擲杯中...";
             document.getElementById("preThrowBtn").disabled = true;
-            fetch("/start_throw", { method: "POST" })
+            fetch("/start_throw", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ is_pre_throw: true })
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "聖杯") {
                         document.getElementById("preThrowResult").innerText = "您擲出聖杯，神明已回應，請繼續提出您的問題。";
                         updateFormState(true);
+                        document.getElementById("preThrowBtn").disabled = true;
+                        preThrowState.result = "聖杯";
+                        preThrowState.isLocked = true;
                     } else if (data.result === "笑杯") {
                         document.getElementById("preThrowResult").innerText = "您擲出笑杯，\n意旨資訊填寫有誤或是資訊填寫不完整，填寫妥善後再重新擲杯。";
                         document.getElementById("preThrowBtn").disabled = false;
                         updateFormState(false);
                     } else if (data.result === "蓋杯") {
                         document.getElementById("preThrowResult").innerText = "您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。";
-                        let countdown = 10;
+                        updateFormState(false);
+                        preThrowState.result = "蓋杯";
+                        preThrowState.isLocked = true;
+                    
+                        let countdown = 10; // 倒數10秒
                         const countdownInterval = setInterval(() => {
                             document.getElementById("preThrowResult").innerText = 
-                                `您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。\n即將斷開連線 ${countdown}...`;
+                                `您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。\n剩餘時間 ${countdown} 秒...`;
                             countdown--;
                             if (countdown < 0) {
                                 clearInterval(countdownInterval);
                                 document.getElementById("preThrowResult").innerText = "連線已斷開，請五分鐘後再試。";
                                 document.getElementById("preThrowBtn").disabled = true;
+                                // 倒數結束後顯示彈出視窗
+                                fetch("/check_ip_restriction")
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.status === "BLOCKED") {
+                                            showRestrictedModal(data.remaining_time);
+                                        }
+                                    });
                             }
                         }, 1000);
-                        updateFormState(false);
+                    } else if (data.status === "BLOCKED") {
+                        document.getElementById("preThrowResult").innerText = data.result;
+                        showRestrictedModal(parseInt(data.result.match(/\d+/)[0])); // 提取秒數
                     }
                 })
                 .catch(error => {
@@ -261,11 +420,80 @@
                 });
         }
 
+        function startCanAsk() {
+            document.getElementById("canAskResult").innerText = "擲杯中...";
+            document.getElementById("canAskResult").style.display = "block";
+            document.getElementById("canAskBtn").disabled = true;
+
+            fetch("/start_throw", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ is_pre_throw: true, is_can_ask: true }) // 添加 is_can_ask 標誌
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("startCanAsk 回傳資料:", data);
+                    if (data.status === "PRE_THROW" && data.result) {
+                        if (data.result === "聖杯") {
+                            document.getElementById("canAskResult").innerText = "問題正確請開始抽籤";
+                            document.getElementById("drawBtn").disabled = false;
+                        } else if (data.result === "笑杯") {
+                            document.getElementById("canAskResult").innerText = "問題輸入不夠詳盡或是此問題你心中自有答案，請更深入其問題或是換個問題";
+                            document.getElementById("canAskBtn").disabled = true;
+                        } else if (data.result === "蓋杯") {
+                            document.getElementById("canAskResult").innerText = "此問題目前無解，或是無法透過遠端回應，請換個問題或是到現場詢問";
+                            document.getElementById("canAskBtn").disabled = true;
+                        } else {
+                            document.getElementById("canAskResult").innerText = "擲杯結果異常，請稍後再試";
+                            document.getElementById("canAskBtn").disabled = false;
+                        }
+                    } else if (data.status === "BLOCKED") {
+                        document.getElementById("canAskResult").innerText = data.result; // 顯示限制訊息
+                        document.getElementById("canAskBtn").disabled = true; // 保持禁用，直到問題更動
+                    } else {
+                        document.getElementById("canAskResult").innerText = "擲杯結果格式錯誤，請稍後再試";
+                        document.getElementById("canAskBtn").disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error("是否能問這個問題擲杯錯誤:", error);
+                    document.getElementById("canAskResult").innerText = "擲杯失敗，請稍後再試。";
+                    document.getElementById("canAskBtn").disabled = false;
+                });
+        }
+
+        function resetCanAskState() {
+            const question = document.getElementById("userQuestion").value.trim();
+            if (question !== "") {
+                document.getElementById("canAskBtn").disabled = false;
+                document.getElementById("canAskResult").innerText = "";
+                document.getElementById("canAskResult").style.display = "none";
+            } else {
+                document.getElementById("canAskBtn").disabled = true;
+                document.getElementById("canAskResult").innerText = "";
+                document.getElementById("canAskResult").style.display = "none";
+            }
+        }
+
         function startMoreThrow() {
             document.getElementById("moreThrowResult").innerText = "擲杯中...";
             document.getElementById("moreThrowBtn").disabled = true;
-            fetch("/start_throw", { method: "POST" })
-                .then(response => response.json())
+            fetch("/start_throw", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.status === "PRE_THROW" || data.status === "PENDING" || data.status === "DONE" || data.status === "FAILED") {
                         if (data.result === "聖杯") {
@@ -273,13 +501,13 @@
                             document.getElementById("drawBtn").disabled = false;
                             document.getElementById("throwBtn").disabled = true;
                             document.getElementById("interpretBtn").disabled = true;
-                            document.getElementById("currentPoem").innerText = ""; // 清空「此次籤詩」
+                            document.getElementById("currentPoem").innerText = "";
                         } else {
-                            document.getElementById("moreThrowResult").innerText = "您擲出笑杯或蓋杯，不需要再繼續抽籤，開始解籤";
+                            document.getElementById("moreThrowResult").innerText = "您擲出笑杯或蓋杯，不需要再繼續抽籤，請點擊解籤";
                             document.getElementById("drawBtn").disabled = true;
                             document.getElementById("throwBtn").disabled = true;
-                            document.getElementById("interpretBtn").disabled = true;
-                            interpretLottery();
+                            document.getElementById("interpretBtn").disabled = false; // 啟用解籤按鈕，手動觸發
+                            document.getElementById("moreThrowBtn").disabled = true;
                         }
                     } else if (data.status === "BLOCKED") {
                         document.getElementById("moreThrowResult").innerText = data.result;
@@ -288,6 +516,7 @@
                         document.getElementById("interpretBtn").disabled = true;
                     } else {
                         document.getElementById("moreThrowResult").innerText = "擲杯結果異常，請稍後再試";
+                        document.getElementById("moreThrowBtn").disabled = false;
                     }
                 })
                 .catch(error => {
@@ -295,6 +524,44 @@
                     document.getElementById("moreThrowResult").innerText = "擲杯失敗，請稍後再試。";
                     document.getElementById("moreThrowBtn").disabled = false;
                 });
+        }
+
+        function resetForm() {
+            // 清空所有表單欄位
+            document.getElementById("userName").value = "";
+            document.getElementById("userBirth").value = "";
+            document.getElementById("userAddress").value = "";
+            document.getElementById("userQuestion").value = "";
+
+            // 清空顯示區域
+            document.getElementById("preThrowResult").innerText = "";
+            document.getElementById("canAskResult").innerText = "";
+            document.getElementById("canAskResult").style.display = "none";
+            document.getElementById("moreThrowResult").innerText = "";
+            document.getElementById("currentPoem").innerText = "";
+            document.getElementById("result").innerText = "";
+            document.getElementById("drawnPoems").innerHTML = "";
+
+            // 重置狀態
+            preThrowState.result = null;
+            preThrowState.isLocked = false;
+            drawnPoems = [];
+            currentPoemIds = [];
+
+            // 禁用所有按鈕並重置表單狀態
+            updateFormState(false);
+            document.getElementById("preThrowBtn").disabled = false;
+            document.getElementById("canAskBtn").disabled = true;
+            document.getElementById("drawBtn").disabled = true;
+            document.getElementById("throwBtn").disabled = true;
+            document.getElementById("interpretBtn").disabled = true;
+            document.getElementById("moreThrowBtn").disabled = true;
+
+            // 隱藏「重新開始」按鈕
+            document.getElementById("resetBtn").style.display = "none";
+
+            // 觸發 checkInput 檢查按鈕狀態
+            checkInput();
         }
     </script>
 </body>
