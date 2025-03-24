@@ -9,6 +9,101 @@
 </head>
 <body>
     <main class="container my-5">
+        <div class="row">
+            <!-- 直播串流區塊（左邊） -->
+            <div class="col-md-4">
+                <section class="live-stream">
+                    <div class="section-header mb-4">
+                        <h2 class="text-center">直播串流</h2>
+                    </div>
+                    <div id="liveStreamContainer" class="live-stream-container mb-4">
+                        <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" alt="直播串流佔位" class="img-fluid">
+                    </div>
+                </section>
+            </div>
+    
+            <!-- 詢問神明區塊（右邊） -->
+            <div class="col-md-8">
+                <section class="extra">
+                    <div class="section-header mb-4">
+                        <h2 class="text-center">詢問神明</h2>
+                        <small class="form-text text-muted">注意：所有資訊請照範例格式填寫，並盡可能填寫完整，避免影響神明溝通</small>
+                    </div>
+                    <form id="userForm" class="mb-3">
+                        <!-- 姓名（必填） -->
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">姓名(必填) <span class="text-danger">*</span></label>
+                            <input type="text" id="userName" class="form-control" placeholder="請輸入您的姓名" required oninput="checkInput()">
+                        </div>
+    
+                        <!-- 生辰（非必填） -->
+                        <div class="mb-3">
+                            <label for="userBirth" class="form-label">生辰</label>
+                            <small class="form-text text-muted">範例：西元年月日時分，例如：1990-01-01 14:30</small>
+                            <input type="text" id="userBirth" class="form-control" placeholder="選填，例如：1990-01-01 14:30" oninput="checkInput()">
+                        </div>
+    
+                        <!-- 地址（必填，單行） -->
+                        <div class="mb-3">
+                            <label for="userAddress" class="form-label">地址(必填) <span class="text-danger">*</span></label>
+                            <small class="form-text text-muted">提示：請填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
+                            <input type="text" id="userAddress" class="form-control" placeholder="請輸入完整地址，例如：台灣台北市中正區忠孝東路一段1號" required oninput="checkInput()">
+                        </div>
+    
+                        <!-- 前置擲杯按鈕 -->
+                        <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                            <button id="preThrowBtn" class="btn btn-primary" disabled>擲杯，請問神明在嗎</button>
+                        </div>
+    
+                        <!-- 前置擲杯結果 -->
+                        <div id="preThrowResult" class="result-container mb-4"></div>
+    
+                        <!-- 問題（必填） -->
+                        <div class="mb-3">
+                            <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
+                            <small class="form-text text-muted">提示：問題請語意清楚且詳盡</small>
+                            <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" disabled oninput="checkInput(); resetCanAskState();">
+                        </div>
+    
+                        <!-- 確認問題擲杯按鈕 -->
+                        <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                            <button id="canAskBtn" class="btn btn-primary" disabled>是否能問這個問題</button>
+                        </div>   
+    
+                        <!-- 是否能問這個問題擲杯結果 -->
+                        <div id="canAskResult" class="text-center result-container mb-4" style="display: none;"></div>
+                    </form>
+    
+                    <div class="button-group d-flex justify-content-center gap-3 mb-4">
+                        <button id="drawBtn" class="btn btn-primary" disabled>抽籤</button>
+                        <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
+                        <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
+                    </div>
+    
+                    <!-- 結果區塊 -->
+                    <div id="result" class="result-container mb-4"></div>
+    
+                    <!-- 是否再多抽一支籤按鈕 -->
+                    <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                        <button id="moreThrowBtn" class="btn btn-primary" disabled>擲杯，是否再多抽一支籤</button>
+                    </div>
+    
+                    <!-- 是否再多抽一支籤結果 -->
+                    <div id="moreThrowResult" class="result-container mb-4"></div>
+    
+                    <h2 class="text-center mb-4">結果</h2>
+    
+                    <!-- 此次籤詩 -->
+                    <h3 class="text-center mb-3">此次籤詩</h3>
+                    <div id="currentPoem" class="result-container mb-4"></div>
+    
+                    <!-- 已抽到的籤 -->
+                    <h3 class="text-center mb-3">已抽到的籤</h3>
+                    <div id="drawnPoems" class="result-container mb-4"></div>
+                </section>
+            </div>
+        </div>
+    
         <!-- IP 限制彈出視窗 -->
         <div class="modal fade" id="ipRestrictedModal" tabindex="-1" aria-labelledby="ipRestrictedModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-dialog-centered">
@@ -22,83 +117,6 @@
                 </div>
             </div>
         </div>
-        <section class="extra">
-            <div class="mb-4">
-                <h2 class="text-center">詢問神明</h2>
-                <small class="form-text text-muted">注意：所有資訊請照範例格式填寫，並盡可能填寫完整，避免影響神明溝通</small>
-            </div>
-            <form id="userForm" class="mb-3">
-                <!-- 姓名（必填） -->
-                <div class="mb-3">
-                    <label for="userName" class="form-label">姓名(必填) <span class="text-danger">*</span></label>
-                    <input type="text" id="userName" class="form-control" placeholder="請輸入您的姓名" required oninput="checkInput()">
-                </div>
-
-                <!-- 生辰（非必填） -->
-                <div class="mb-3">
-                    <label for="userBirth" class="form-label">生辰</label>
-                    <small class="form-text text-muted">範例：西元年月日時分，例如：1990-01-01 14:30</small>
-                    <input type="text" id="userBirth" class="form-control" placeholder="選填，例如：1990-01-01 14:30" oninput="checkInput()">
-                </div>
-
-                <!-- 地址（必填，單行） -->
-                <div class="mb-3">
-                    <label for="userAddress" class="form-label">地址(必填) <span class="text-danger">*</span></label>
-                    <small class="form-text text-muted">提示：請填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
-                    <input type="text" id="userAddress" class="form-control" placeholder="請輸入完整地址，例如：台灣台北市中正區忠孝東路一段1號" required oninput="checkInput()">
-                </div>
-
-                <!-- 前置擲杯按鈕 -->
-                <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                    <button id="preThrowBtn" class="btn btn-primary" disabled>擲杯，請問神明在嗎</button>
-                </div>
-
-                <!-- 前置擲杯結果 -->
-                <div id="preThrowResult" class="result-container mb-4"></div>
-
-                <!-- 問題（必填） -->
-                <div class="mb-3">
-                    <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
-                    <small class="form-text text-muted">提示：問題請語意清楚且詳盡</small>
-                    <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" disabled oninput="checkInput(); resetCanAskState();">
-                </div>
-
-                <!-- 確認問題擲杯按鈕 -->
-                <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                    <button id="canAskBtn" class="btn btn-primary" disabled>是否能問這個問題</button>
-                </div>   
-
-                <!-- 是否能問這個問題擲杯結果 -->
-                <div id="canAskResult" class="text-center result-container mb-4" style="display: none;"></div>
-            </form>
-
-            <div class="button-group d-flex justify-content-center gap-3 mb-4">
-                <button id="drawBtn" class="btn btn-primary" disabled>抽籤</button>
-                <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
-                <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
-            </div>
-
-            <!-- 擲杯結果區塊 -->
-            <div id="result" class="result-container mb-4"></div>
-
-            <!-- 是否再多抽一支籤按鈕 -->
-            <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                <button id="moreThrowBtn" class="btn btn-primary" disabled>擲杯，是否再多抽一支籤</button>
-            </div>
-
-            <!-- 是否再多抽一支籤結果 -->
-            <div id="moreThrowResult" class="result-container mb-4"></div>
-
-            <h2 class="text-center mb-4">結果</h2>
-
-            <!-- 此次籤詩 -->
-            <h3 class="text-center mb-3">此次籤詩</h3>
-            <div id="currentPoem" class="result-container mb-4"></div>
-
-            <!-- 已抽到的籤 -->
-            <h3 class="text-center mb-3">已抽到的籤</h3>
-            <div id="drawnPoems" class="result-container mb-4"></div>
-        </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -109,8 +127,11 @@
         let currentPoemIds = [];
         let hasReceivedHolyCup = false;
         let preThrowState = {
-            result: null, // "聖杯", "笑杯", "蓋杯" 或 null
-            isLocked: false // 是否鎖定 preThrowBtn
+            result: null,
+            isLocked: false,
+            lastName: "", // 記錄笑杯時的姓名
+            lastBirth: "", // 記錄笑杯時的生辰
+            lastAddress: "" // 記錄笑杯時的地址
         };
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -172,10 +193,24 @@
             const name = document.getElementById("userName").value.trim();
             const address = document.getElementById("userAddress").value.trim();
             const question = document.getElementById("userQuestion").value.trim();
-            const isValid = name !== "" && address !== "";      
+            const birth = document.getElementById("userBirth").value.trim();
+            const isValid = name !== "" && address !== "";
 
             // 控制 preThrowBtn
-            if (!preThrowState.isLocked) {
+            if (preThrowState.isLocked && preThrowState.result === "笑杯") {
+                // 檢查是否有欄位更動
+                const hasChanged = 
+                    name !== preThrowState.lastName ||
+                    birth !== preThrowState.lastBirth ||
+                    address !== preThrowState.lastAddress;
+
+                if (hasChanged && isValid) {
+                    preThrowState.isLocked = false; // 解除鎖定
+                    document.getElementById("preThrowBtn").disabled = false;
+                } else {
+                    document.getElementById("preThrowBtn").disabled = true;
+                }
+            } else if (!preThrowState.isLocked) {
                 document.getElementById("preThrowBtn").disabled = !isValid;
             }
         
@@ -196,6 +231,7 @@
             const question = document.getElementById("userQuestion").value.trim();
 
             document.getElementById("currentPoem").innerText = "抽籤中...";
+            document.getElementById("result").innerText = ""; // 清空 result 區塊
             fetch("/draw_lottery", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -215,6 +251,8 @@
                                         </div>
                                     </div>
                                 `;
+                                // 設置 result 區塊的訊息
+                                document.getElementById("result").innerText = "可下滑檢視當前的籤，並點擊按鈕開始擲杯";
                                 document.getElementById("drawBtn").disabled = true;
                                 document.getElementById("throwBtn").disabled = false;
                                 document.getElementById("interpretBtn").disabled = true;
@@ -226,6 +264,7 @@
                 .catch(error => {
                     console.error("抽籤錯誤:", error);
                     document.getElementById("currentPoem").innerText = "抽籤失敗，請稍後再試。";
+                    document.getElementById("result").innerText = "抽籤失敗，請稍後再試。";
                 });
         }
 
@@ -320,7 +359,7 @@
                     document.getElementById("result").innerHTML = `
                         <div class="card">
                             <div class="card-body">
-                                <h3 class="card-title">綜合解籤</h3>
+                                <h3 class="card-title">解籤結果</h3>
                                 <p class="card-text">${data.interpretation}</p>
                             </div>
                         </div>
@@ -381,15 +420,19 @@
                         preThrowState.isLocked = true;
                     } else if (data.result === "笑杯") {
                         document.getElementById("preThrowResult").innerText = "您擲出笑杯，\n意旨資訊填寫有誤或是資訊填寫不完整，填寫妥善後再重新擲杯。";
-                        document.getElementById("preThrowBtn").disabled = false;
                         updateFormState(false);
+                        preThrowState.result = "笑杯";
+                        preThrowState.isLocked = true; // 鎖定按鈕
+                        // 記錄當前欄位值
+                        preThrowState.lastName = document.getElementById("userName").value.trim();
+                        preThrowState.lastBirth = document.getElementById("userBirth").value.trim();
+                        preThrowState.lastAddress = document.getElementById("userAddress").value.trim();
                     } else if (data.result === "蓋杯") {
                         document.getElementById("preThrowResult").innerText = "您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。";
                         updateFormState(false);
                         preThrowState.result = "蓋杯";
                         preThrowState.isLocked = true;
-                    
-                        let countdown = 10; // 倒數10秒
+                        let countdown = 10;
                         const countdownInterval = setInterval(() => {
                             document.getElementById("preThrowResult").innerText = 
                                 `您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。\n剩餘時間 ${countdown} 秒...`;
@@ -398,7 +441,6 @@
                                 clearInterval(countdownInterval);
                                 document.getElementById("preThrowResult").innerText = "連線已斷開，請五分鐘後再試。";
                                 document.getElementById("preThrowBtn").disabled = true;
-                                // 倒數結束後顯示彈出視窗
                                 fetch("/check_ip_restriction")
                                     .then(response => response.json())
                                     .then(data => {
@@ -410,7 +452,7 @@
                         }, 1000);
                     } else if (data.status === "BLOCKED") {
                         document.getElementById("preThrowResult").innerText = data.result;
-                        showRestrictedModal(parseInt(data.result.match(/\d+/)[0])); // 提取秒數
+                        showRestrictedModal(parseInt(data.result.match(/\d+/)[0]));
                     }
                 })
                 .catch(error => {
@@ -527,13 +569,11 @@
         }
 
         function resetForm() {
-            // 清空所有表單欄位
             document.getElementById("userName").value = "";
             document.getElementById("userBirth").value = "";
             document.getElementById("userAddress").value = "";
             document.getElementById("userQuestion").value = "";
 
-            // 清空顯示區域
             document.getElementById("preThrowResult").innerText = "";
             document.getElementById("canAskResult").innerText = "";
             document.getElementById("canAskResult").style.display = "none";
@@ -542,13 +582,14 @@
             document.getElementById("result").innerText = "";
             document.getElementById("drawnPoems").innerHTML = "";
 
-            // 重置狀態
             preThrowState.result = null;
             preThrowState.isLocked = false;
+            preThrowState.lastName = ""; // 重置欄位記錄
+            preThrowState.lastBirth = "";
+            preThrowState.lastAddress = "";
             drawnPoems = [];
             currentPoemIds = [];
 
-            // 禁用所有按鈕並重置表單狀態
             updateFormState(false);
             document.getElementById("preThrowBtn").disabled = false;
             document.getElementById("canAskBtn").disabled = true;
@@ -557,10 +598,8 @@
             document.getElementById("interpretBtn").disabled = true;
             document.getElementById("moreThrowBtn").disabled = true;
 
-            // 隱藏「重新開始」按鈕
             document.getElementById("resetBtn").style.display = "none";
 
-            // 觸發 checkInput 檢查按鈕狀態
             checkInput();
         }
     </script>
