@@ -8,22 +8,46 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <main class="container my-5">
+    <main class="container-fluid my-5">
         <div class="row">
-            <!-- 直播串流區塊（左邊） -->
-            <div class="col-md-4">
+            <!-- 最左邊：直播串流和使用者攝影機（直行），增加寬度 -->
+            <div class="col-md-5">
+                <!-- 直播串流區塊 -->
                 <section class="live-stream">
-                    <div class="section-header mb-4">
+                    <div class="section-header mb-3">
                         <h2 class="text-center">直播串流</h2>
                     </div>
-                    <div id="liveStreamContainer" class="live-stream-container mb-4">
+                    <div id="liveStreamContainer" class="live-stream-container mb-3">
                         <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" alt="直播串流佔位" class="img-fluid">
+                    </div>
+                </section>
+
+                <!-- 使用者攝影機區塊 -->
+                <section class="user-camera">
+                    <div class="section-header mb-3">
+                        <h2 class="text-center">您的攝影機</h2>
+                    </div>
+                    <div id="userCameraContainer" class="live-stream-container mb-3">
+                        <video id="userCamera" autoplay playsinline></video>
+                    </div>
+                    <div id="cameraError" class="text-danger" style="display: none;"></div>
+                </section>
+            </div>
+
+            <!-- 中間：神像直播（col-md-2） -->
+            <div class="col-md-2">
+                <section class="god-stream">
+                    <div class="section-header mb-3">
+                        <h2 class="text-center">神像直播</h2>
+                    </div>
+                    <div id="godStreamContainer" class="live-stream-container mb-3">
+                        <img src="../static/images/god_img.jpg" alt="神像直播佔位" class="img-fluid">
                     </div>
                 </section>
             </div>
     
             <!-- 詢問神明區塊（右邊） -->
-            <div class="col-md-8">
+            <div class="col-md-5">
                 <section class="extra">
                     <div class="section-header mb-4">
                         <h2 class="text-center">詢問神明</h2>
@@ -141,6 +165,17 @@
             document.getElementById("preThrowBtn").addEventListener("click", startPreThrow);
             document.getElementById("moreThrowBtn").addEventListener("click", startMoreThrow);
             document.getElementById("canAskBtn").addEventListener("click", startCanAsk); // 新增按鈕事件
+            const userCamera = document.getElementById('userCamera');
+            const cameraError = document.getElementById('cameraError');
+            // 請求攝影機權限並啟動直播
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    userCamera.srcObject = stream; // 將攝影機串流綁定到 video 元素
+                })
+                .catch(function(error) {
+                    cameraError.innerText = "無法訪問攝影機，請檢查權限設置。";
+                    cameraError.style.display = "block"; // 顯示錯誤訊息
+                });
             // 檢查 IP 限制狀態
             checkIpRestriction();
 

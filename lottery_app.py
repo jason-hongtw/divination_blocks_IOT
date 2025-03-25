@@ -59,7 +59,9 @@ def start_throw():
             return jsonify({"status": "BLOCKED", "result": f"因先前擲出蓋杯，您的IP已被限制，請於 {remaining_time} 秒後再試"})
 
     possible_results = ["聖杯", "笑杯", "蓋杯"]
-    image_files = ["positive.jpg", "negative.jpg", "undefined.jpg"]
+    #image_files = ["positive.jpg", "negative.jpg", "undefined.jpg"] # 完整杯型
+    image_files = ["positive.jpg", "undefined.jpg"] # 沒有蓋杯
+    #image_files = ["positive.jpg"] 只有聖杯
     selected_image = random.choice(image_files)
     app.logger.info(f"選中的圖片: {selected_image}")
 

@@ -152,23 +152,49 @@ main {
     margin-bottom: 0; /* 移除標題下方的預設間距 */
 }
 
-.live-stream{
+/* 直播串流和使用者攝影機樣式 */
+.live-stream,
+.user-camera {
     background-color: rgba(255, 255, 255, 0.9);
 }
 
+/* 神像直播樣式 */
+.god-stream {
+    background-color: rgba(255, 255, 255, 0.9);
+    height: 100%; /* 確保高度與左側一致 */
+}
+
+/* 共用的容器樣式 */
 .live-stream-container {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
     background-color: rgba(255, 255, 255, 0.9);
-    min-height: 200px; /* 最小高度，防止過短 */
+    min-height: 200px; /* 每個區塊最小高度，可調整 */
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.live-stream-container img {
+/* 確保神像直播容器內圖片適應高度 */
+#godStreamContainer {
+    height: calc(100% - 4rem); /* 減去標題高度 */
+}
+
+#userCamera,
+#liveStreamContainer img,
+#godStreamContainer img {
     max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* 保持圖片比例 */
+    height: auto;
+    border-radius: 5px;
+}
+
+/* 調整神像直播區塊高度 */
+.god-stream {
+    height: calc(400px + 6rem + 2rem); /* 兩個區塊（200px * 2）+ 兩個 mb-3（3rem * 2）+ 標題高度（約 2rem） */
+}
+
+/* 確保神像直播區塊高度匹配左側 */
+.col-md-2 .live-stream-container {
+    height: calc(400px + 8rem); /* 左側兩個區塊高度（200px * 2）+ 間距（mb-4 約 4rem） */
 }
