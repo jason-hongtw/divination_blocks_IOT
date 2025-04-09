@@ -8,39 +8,55 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- 固定選單列 -->
+    <!-- 固定選單列 -->
+    <header>
+        <!-- 手機版直播區域 -->
+        <div class="mobile-stream-container d-md-none">
+            <!-- 直播串流（底層） -->
+            <div class="live-stream">
+                <div id="liveStreamContainer" class="live-stream-container">
+                    <img src="video_feed_pi" alt="直播串流" class="img-fluid">
+                </div>
+            </div>
+            <!-- 使用者攝影機（左上角） -->
+            <div class="user-camera-overlay">
+                <div id="userCameraContainer" class="live-stream-container">
+                    <video id="userCamera" autoplay playsinline></video>
+                </div>
+                <div id="cameraError" class="text-danger" style="display: none;"></div>
+            </div>
+            <!-- 神像直播（右上角） -->
+            <div class="god-stream-overlay">
+                <div id="godStreamContainer" class="live-stream-container">
+                    <img src="../static/images/god_img.jpg" alt="神像直播佔位" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </header>
+
     <main class="container-fluid my-5">
         <div class="row">
-            <!-- 最左邊：直播串流和使用者攝影機（直行），增加寬度 -->
-            <div class="col-md-5">
-                <!-- 直播串流區塊 -->
+            <!-- 桌機版直播區域 -->
+            <div class="col-md-5 d-none d-md-block">
                 <section class="live-stream">
-                    <div class="section-header mb-3">
-                        <h2 class="text-center">直播串流</h2>
-                    </div>
-                    <div id="liveStreamContainer" class="live-stream-container mb-3">
-                        <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" alt="直播串流佔位" class="img-fluid">
+                    <h2 class="text-center">直播串流</h2>
+                    <div id="liveStreamContainerDesktop" class="live-stream-container mb-3">
+                        <img src="http://192.168.1.130:5000/video_feed_pi" alt="直播串流" class="img-fluid">
                     </div>
                 </section>
-
-                <!-- 使用者攝影機區塊 -->
                 <section class="user-camera">
-                    <div class="section-header mb-3">
-                        <h2 class="text-center">您的攝影機</h2>
+                    <h2 class="text-center">您的攝影機</h2>
+                    <div id="userCameraContainerDesktop" class="live-stream-container mb-3">
+                        <video id="userCameraDesktop" autoplay playsinline></video>
                     </div>
-                    <div id="userCameraContainer" class="live-stream-container mb-3">
-                        <video id="userCamera" autoplay playsinline></video>
-                    </div>
-                    <div id="cameraError" class="text-danger" style="display: none;"></div>
+                    <div id="cameraErrorDesktop" class="text-danger" style="display: none;"></div>
                 </section>
             </div>
-
-            <!-- 中間：神像直播（col-md-2） -->
-            <div class="col-md-2">
+            <div class="col-md-2 d-none d-md-block">
                 <section class="god-stream">
-                    <div class="section-header mb-3">
-                        <h2 class="text-center">神像直播</h2>
-                    </div>
-                    <div id="godStreamContainer" class="live-stream-container mb-3">
+                    <h2 class="text-center">神像直播</h2>
+                    <div id="godStreamContainerDesktop" class="live-stream-container mb-3">
                         <img src="../static/images/god_img.jpg" alt="神像直播佔位" class="img-fluid">
                     </div>
                 </section>
@@ -146,6 +162,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
 
+        function adjustMainMargin() {
+            const header = document.querySelector('header');
+            const main = document.querySelector('main');
+            main.style.marginTop = `${header.offsetHeight}px`;
+        }
+        window.addEventListener('resize', adjustMainMargin);
+        window.addEventListener('load', adjustMainMargin);
+
         // 用於儲存已抽到的籤詩
         let drawnPoems = [];
         let currentPoemIds = [];
@@ -166,16 +190,28 @@
             document.getElementById("moreThrowBtn").addEventListener("click", startMoreThrow);
             document.getElementById("canAskBtn").addEventListener("click", startCanAsk); // 新增按鈕事件
             const userCamera = document.getElementById('userCamera');
+            const userCameraDesktop = document.getElementById('userCameraDesktop');
             const cameraError = document.getElementById('cameraError');
+            const cameraErrorDesktop = document.getElementById('cameraErrorDesktop');
             // 請求攝影機權限並啟動直播
-            navigator.mediaDevices.getUserMedia({ video: true })
+            navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user" } // "user" 表示前置攝影機，"environment" 表示後置攝影機
+            })
                 .then(function(stream) {
-                    userCamera.srcObject = stream; // 將攝影機串流綁定到 video 元素
-                })
-                .catch(function(error) {
-                    cameraError.innerText = "無法訪問攝影機，請檢查權限設置。";
-                    cameraError.style.display = "block"; // 顯示錯誤訊息
-                });
+                        userCamera.srcObject = stream;
+                        if (userCamera) userCamera.srcObject = stream;
+                        if (userCameraDesktop) userCameraDesktop.srcObject = stream;
+                    })
+                    .catch(function(error) {
+                        if (cameraError) {
+                            cameraError.innerText = "無法訪問攝影機，請檢查權限設置。";
+                            cameraError.style.display = "block";
+                        }
+                        if (cameraErrorDesktop) {
+                            cameraErrorDesktop.innerText = "無法訪問攝影機，請檢查權限設置。";
+                            cameraErrorDesktop.style.display = "block";
+                        }
+                    });
             // 檢查 IP 限制狀態
             checkIpRestriction();
 
@@ -463,18 +499,18 @@
                         preThrowState.lastBirth = document.getElementById("userBirth").value.trim();
                         preThrowState.lastAddress = document.getElementById("userAddress").value.trim();
                     } else if (data.result === "蓋杯") {
-                        document.getElementById("preThrowResult").innerText = "您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。";
+                        document.getElementById("preThrowResult").innerText = "您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請5秒後再來。";
                         updateFormState(false);
                         preThrowState.result = "蓋杯";
                         preThrowState.isLocked = true;
                         let countdown = 10;
                         const countdownInterval = setInterval(() => {
                             document.getElementById("preThrowResult").innerText = 
-                                `您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請五分鐘後再來。\n剩餘時間 ${countdown} 秒...`;
+                                `您擲出蓋杯，意旨神明目前無法解答您的問題，可能是您自身的因素也可能是環境因素，請5秒後再來。\n剩餘時間 ${countdown} 秒...`;
                             countdown--;
                             if (countdown < 0) {
                                 clearInterval(countdownInterval);
-                                document.getElementById("preThrowResult").innerText = "連線已斷開，請五分鐘後再試。";
+                                document.getElementById("preThrowResult").innerText = "連線已斷開，請5秒後再試。";
                                 document.getElementById("preThrowBtn").disabled = true;
                                 fetch("/check_ip_restriction")
                                     .then(response => response.json())

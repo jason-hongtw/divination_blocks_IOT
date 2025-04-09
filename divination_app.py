@@ -4,10 +4,13 @@ import random
 import requests
 import time
 import numpy as np
-from flask import Flask, request, jsonify, render_template, session
-from teachable_machine_eval import load_model, load_image_for_model
+from flask import Flask, request, jsonify, render_template, session, Response
+from modules.teachable_machine_eval import load_model, load_image_for_model
 import threading
-import time
+import cv2
+import logging
+import subprocess
+
 
 app = Flask(__name__)
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -60,16 +63,19 @@ def start_throw():
 
     possible_results = ["聖杯", "笑杯", "蓋杯"]
     #image_files = ["positive.jpg", "negative.jpg", "undefined.jpg"] # 完整杯型
-    image_files = ["positive.jpg", "undefined.jpg"] # 沒有蓋杯
+    #image_files = ["positive.jpg", "undefined.jpg"] # 沒有蓋杯
     #image_files = ["positive.jpg"] 只有聖杯
-    selected_image = random.choice(image_files)
-    app.logger.info(f"選中的圖片: {selected_image}")
+    #selected_image = random.choice(image_files)
+
+    #app.logger.info(f"選中的圖片: {selected_image}")
 
     try:
-        img_array = load_image_for_model(selected_image)
+        img_array = load_image_for_model("latest.jpg")
+        #img_array = load_image_for_model(selected_image)
     except Exception as e:
         app.logger.error(f"圖片載入失敗: {str(e)}")
-        return jsonify({"status": "error", "result": f"擲杯圖片載入失敗（{selected_image}），請確認圖片是否存在"}), 500
+        return jsonify({"status": "error", "result": f"擲杯圖片載入失敗（{img_array}），請確認圖片是否存在"}), 500
+        #return jsonify({"status": "error", "result": f"擲杯圖片載入失敗（{selected_image}），請確認圖片是否存在"}), 500
 
     predictions = tm_model(img_array)
     predicted_class = np.argmax(predictions)
@@ -102,7 +108,7 @@ def start_throw():
         # 前置擲杯邏輯
         if predicted_class_name == "蓋杯" and not is_can_ask:  # 只有非 canAskBtn 的蓋杯才限制 IP
             with lock:
-                restricted_ips[client_ip] = time.time() + 300  # 限制 5 分鐘
+                restricted_ips[client_ip] = time.time() + 10  # 限制 5 分鐘
         result = {"status": "PRE_THROW", "result": predicted_class_name}
         print("[DEBUG] 擲杯回傳:", result)
         return jsonify(result)
@@ -194,10 +200,34 @@ def check_ip_restriction():
             remaining_time = int(restricted_ips[client_ip] - time.time())
             return jsonify({"status": "BLOCKED", "remaining_time": remaining_time})
         return jsonify({"status": "OK"})
+    
+# 確保同層資料夾存在
+UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__))
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    app.logger.info("收到上傳圖片請求")
+    if 'image' not in request.files:
+        app.logger.error("未找到圖片")
+        return jsonify({"status": "error", "message": "未找到圖片"}), 400
+    
+    file = request.files['image']
+    if file.filename == '':
+        app.logger.error("檔案名稱為空")
+        return jsonify({"status": "error", "message": "檔案名稱為空"}), 400
+    
+    # 儲存為 latest.jpg
+    file_path = os.path.join(UPLOAD_FOLDER, 'latest.jpg')
+    file.save(file_path)
+    app.logger.info(f"圖片已儲存到 {file_path}")
+    
+    return jsonify({"status": "success", "message": "圖片已儲存"}), 200
 
 @app.route("/")
 def home():
-    return render_template("pray_try.html")
+    return render_template("divination.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
