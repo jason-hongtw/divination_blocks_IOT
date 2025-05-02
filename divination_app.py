@@ -62,16 +62,19 @@ def start_throw():
             return jsonify({"status": "BLOCKED", "result": f"因先前擲出蓋杯，您的IP已被限制，請於 {remaining_time} 秒後再試"})
 
     possible_results = ["聖杯", "笑杯", "蓋杯"]
-    #image_files = ["positive.jpg", "negative.jpg", "undefined.jpg"] # 完整杯型
-    #image_files = ["positive.jpg", "undefined.jpg"] # 沒有蓋杯
-    #image_files = ["positive.jpg"] 只有聖杯
-    #selected_image = random.choice(image_files)
+    positive_img = "static/images/test_img/positive.jpg"
+    laugh_jpg = "static/images/test_img/laugh.jpg"
+    negative_jpg = "static/images/test_img/negative.jpg"
+    #image_files = [positive_img, laugh_jpg, negative_jpg] # 完整杯型
+    image_files = [positive_img, laugh_jpg] # 沒有蓋杯
+    #image_files = [negative_jpg] #單獨杯型
+    selected_image = random.choice(image_files)
 
     #app.logger.info(f"選中的圖片: {selected_image}")
 
     try:
-        img_array = load_image_for_model("latest.jpg")
-        #img_array = load_image_for_model(selected_image)
+        #img_array = load_image_for_model("latest.jpg")
+        img_array = load_image_for_model(selected_image)
     except Exception as e:
         app.logger.error(f"圖片載入失敗: {str(e)}")
         return jsonify({"status": "error", "result": f"擲杯圖片載入失敗（{img_array}），請確認圖片是否存在"}), 500

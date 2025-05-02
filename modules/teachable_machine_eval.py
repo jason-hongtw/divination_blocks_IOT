@@ -91,8 +91,8 @@ def evaluate_model(model, test_folder):
 if __name__ == '__main__':
 
     # 設定模型與測試資料夾
-    MODEL_PATH = "models\pue_tm_enhance_model/tm_meeting_camera"  # 修改為你的模型路徑
-    TEST_IMAGES_FOLDER = 'datasets\pue_with_dot_dataset/test'  # 測試圖片資料夾
+    MODEL_PATH = "model.savedmodel"  # 修改為你的模型路徑
+    TEST_IMAGES_FOLDER = 'test_img'  # 測試圖片資料夾
     IMAGE_SIZE = 224  # 根據 Teachable Machine 訓練時的輸入尺寸設置
 
     # 執行測試
