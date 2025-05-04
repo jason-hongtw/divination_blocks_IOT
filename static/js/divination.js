@@ -13,6 +13,25 @@ let preThrowState = {
     lastAddress: "" // 記錄笑杯時的地址
 };
 
+// --- NEW: Helper function to control block visibility ---
+function showBlock(blockNumber) {
+    console.log(`Switching to Block ${blockNumber}`); // Debug log
+    // Hide all blocks first
+    document.getElementById('block1').style.display = 'none';
+    document.getElementById('block2').style.display = 'none';
+    document.getElementById('block3').style.display = 'none';
+    document.getElementById('block4').style.display = 'none';
+
+    // Show the target block
+    const blockToShow = document.getElementById(`block${blockNumber}`);
+    if (blockToShow) {
+        blockToShow.style.display = 'block';
+    } else {
+        console.error(`Block ${blockNumber} not found!`);
+    }
+}
+// --- END NEW ---
+
 document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("drawBtn").addEventListener("click", startDraw);
     document.getElementById("throwBtn").addEventListener("click", startThrow);
@@ -44,6 +63,8 @@ document.addEventListener("DOMContentLoaded", function() {
     checkIpRestriction();
 
     checkInput();
+
+    showBlock(1); // 在 DOMContentLoaded 時明確顯示區塊一
 });
 
 function checkInput() {
@@ -154,11 +175,10 @@ function startThrow() {
                         let drawnHtml = "";
                         drawnPoems.forEach(poem => {
                             drawnHtml += `
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h3 class="card-title">籤詩 ID：${poem.id}</h3>
-                                        <p class="card-text">${poem.poem}</p>
-                                    </div>
+                                <div class="poem-card">
+                                    <img src="/static/poem_img/poem_${poem.id}.png" alt="籤詩圖片 ${poem.id}" class="poem-image">
+                                    <h4>籤詩 ID：${poem.id}</h4>
+                                    <p>${poem.poem}</p>
                                 </div>
                             `;
                         });
@@ -185,6 +205,9 @@ function startThrow() {
 }
 
 function interpretLottery() {
+    // --- 立即轉換到區塊四 ---
+    showBlock(4);
+    // --- 轉換結束 ---
     document.getElementById("result").innerText = "解籤中...";
     const name = document.getElementById("userName").value.trim();
     const birth = document.getElementById("userBirth").value.trim();
@@ -212,8 +235,8 @@ function interpretLottery() {
             });
         
             // 渲染已抽到的籤詩和解籤結果
-            document.getElementById("drawnPoems").innerHTML = poemsHtml;
-            document.getElementById("result").innerHTML = `
+            document.getElementById("interpretationDrawnPoems").innerHTML = poemsHtml;
+            document.getElementById("interpretationResult").innerHTML = `
                 <div class="card">
                     <div class="card-body">
                         <h3 class="card-title">解籤結果</h3>
@@ -275,6 +298,13 @@ function startPreThrow() {
                 document.getElementById("preThrowBtn").disabled = true;
                 preThrowState.result = "聖杯";
                 preThrowState.isLocked = true;
+                // --- 2 秒後轉換 ---
+                setTimeout(() => {
+                    showBlock(2);
+                    document.getElementById("preThrowResult").innerText = ""; // 清除區塊一的結果
+                }, 2000);
+                // --- 轉換結束 ---
+
             } else if (data.result === "笑杯") {
                 document.getElementById("preThrowResult").innerText = "您擲出笑杯，\n意旨資訊填寫有誤或是資訊填寫不完整，填寫妥善後再重新擲杯。";
                 updateFormState(false);
@@ -341,6 +371,13 @@ function startCanAsk() {
                 if (data.result === "聖杯") {
                     document.getElementById("canAskResult").innerText = "問題正確請開始抽籤";
                     document.getElementById("drawBtn").disabled = false;
+                     // --- 2 秒後轉換 ---
+                     setTimeout(() => {
+                        showBlock(3);
+                        canAskResultDiv.innerText = ""; // 清除區塊二的結果
+                        canAskResultDiv.style.display = "none"; // 隱藏結果區域
+                    }, 2000);
+                     // --- 轉換結束 ---
                 } else if (data.result === "笑杯") {
                     document.getElementById("canAskResult").innerText = "問題輸入不夠詳盡或是此問題你心中自有答案，請更深入其問題或是換個問題";
                     document.getElementById("canAskBtn").disabled = true;

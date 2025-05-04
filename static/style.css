@@ -162,7 +162,7 @@ main {
 }
 
 /* 已抽到的籤詩容器，橫向並排 */
-#drawnPoems {
+#drawnPoems, #interpretationDrawnPoems {
     display: flex;
     flex-wrap: nowrap; /* 不換行，橫向並排 */
     overflow-x: auto; /* 如果籤詩數量多，允許水平滾動 */

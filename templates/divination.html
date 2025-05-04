@@ -9,7 +9,6 @@
 </head>
 <body>
     <!-- 固定選單列 -->
-    <!-- 固定選單列 -->
     <header>
         <!-- 手機版直播區域 -->
         <div class="mobile-stream-container d-md-none">
@@ -69,77 +68,93 @@
                         <h2 class="text-center">詢問神明</h2>
                         <small class="form-text text-muted">注意：所有資訊請照範例格式填寫，並盡可能填寫完整，避免影響神明溝通</small>
                     </div>
-                    <form id="userForm" class="mb-3">
-                        <!-- 姓名（必填） -->
-                        <div class="mb-3">
-                            <label for="userName" class="form-label">姓名(必填) <span class="text-danger">*</span></label>
-                            <input type="text" id="userName" class="form-control" placeholder="請輸入您的姓名" required oninput="checkInput()">
-                        </div>
-    
-                        <!-- 生辰（非必填） -->
-                        <div class="mb-3">
-                            <label for="userBirth" class="form-label">生辰</label>
-                            <small class="form-text text-muted">範例：西元年月日時分，例如：1990-01-01 14:30</small>
-                            <input type="text" id="userBirth" class="form-control" placeholder="選填，例如：1990-01-01 14:30" oninput="checkInput()">
-                        </div>
-    
-                        <!-- 地址（必填，單行） -->
-                        <div class="mb-3">
-                            <label for="userAddress" class="form-label">地址(必填) <span class="text-danger">*</span></label>
-                            <small class="form-text text-muted">提示：請填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
-                            <input type="text" id="userAddress" class="form-control" placeholder="請輸入完整地址，例如：台灣台北市中正區忠孝東路一段1號" required oninput="checkInput()">
-                        </div>
-    
-                        <!-- 前置擲杯按鈕 -->
-                        <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                            <button id="preThrowBtn" class="btn btn-primary" disabled>擲杯，請問神明在嗎</button>
-                        </div>
-    
-                        <!-- 前置擲杯結果 -->
-                        <div id="preThrowResult" class="result-container mb-4"></div>
-    
+                    <div id="block1">
+                        <form id="userForm" class="mb-3">
+                            <!-- 姓名（必填） -->
+                            <div class="mb-3">
+                                <label for="userName" class="form-label">姓名(必填) <span class="text-danger">*</span></label>
+                                <input type="text" id="userName" class="form-control" placeholder="請輸入您的姓名" required oninput="checkInput()">
+                            </div>
+        
+                            <!-- 生辰（非必填） -->
+                            <div class="mb-3">
+                                <label for="userBirth" class="form-label">生辰</label>
+                                <small class="form-text text-muted">範例：西元年月日時分，例如：1990-01-01 14:30</small>
+                                <input type="text" id="userBirth" class="form-control" placeholder="選填，例如：1990-01-01 14:30" oninput="checkInput()">
+                            </div>
+        
+                            <!-- 地址（必填，單行） -->
+                            <div class="mb-3">
+                                <label for="userAddress" class="form-label">地址(必填) <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">提示：請填寫完整地址，非完整地址可能導致神明無法回應或回應不準確等狀況</small>
+                                <input type="text" id="userAddress" class="form-control" placeholder="請輸入完整地址，例如：台灣台北市中正區忠孝東路一段1號" required oninput="checkInput()">
+                            </div>
+        
+                            <!-- 前置擲杯按鈕 -->
+                            <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                                <button id="preThrowBtn" class="btn btn-primary" disabled>擲杯，請問神明在嗎</button>
+                            </div>
+        
+                            <!-- 前置擲杯結果 -->
+                            <div id="preThrowResult" class="result-container mb-4"></div>
+                        </form>
+                    </div>
+
+                    <div id="block2" class="hidden-block">
                         <!-- 問題（必填） -->
-                        <div class="mb-3">
-                            <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
-                            <small class="form-text text-muted">提示：問題請語意清楚且詳盡</small>
-                            <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" disabled oninput="checkInput(); resetCanAskState();">
+                        <form id="userQuestionForm" class="mb-3">
+                            <div class="mb-3">
+                                <label for="userQuestion" class="form-label">問題 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">提示：問題請語意清楚且詳盡</small>
+                                <input type="text" id="userQuestion" class="form-control" placeholder="請輸入您的問題" disabled oninput="checkInput(); resetCanAskState();">
+                            </div>
+                        
+                            <!-- 確認問題擲杯按鈕 -->
+                            <div class="button-group d-flex justify-content-center gap-3 mb-3">
+                                <button id="canAskBtn" class="btn btn-primary" disabled>是否能問這個問題</button>
+                            </div>   
+                        
+                            <!-- 是否能問這個問題擲杯結果 -->
+                            <div id="canAskResult" class="text-center result-container mb-4" style="display: none;"></div>
+                        </form>
+                    </div>
+
+                    <div id="block3" class="hidden-block">
+                        <div class="button-group d-flex justify-content-center gap-3 mb-4">
+                            <button id="drawBtn" class="btn btn-primary" disabled>抽籤</button>
+                            <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
+                            <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
                         </div>
-    
-                        <!-- 確認問題擲杯按鈕 -->
+        
+                        <!-- 結果區塊 -->
+                        <div id="result" class="result-container mb-4"></div>
+        
+                        <!-- 是否再多抽一支籤按鈕 -->
                         <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                            <button id="canAskBtn" class="btn btn-primary" disabled>是否能問這個問題</button>
-                        </div>   
-    
-                        <!-- 是否能問這個問題擲杯結果 -->
-                        <div id="canAskResult" class="text-center result-container mb-4" style="display: none;"></div>
-                    </form>
-    
-                    <div class="button-group d-flex justify-content-center gap-3 mb-4">
-                        <button id="drawBtn" class="btn btn-primary" disabled>抽籤</button>
-                        <button id="throwBtn" class="btn btn-primary" disabled>擲杯</button>
-                        <button id="interpretBtn" class="btn btn-primary" disabled>解籤</button>
+                            <button id="moreThrowBtn" class="btn btn-primary" disabled>擲杯，是否再多抽一支籤</button>
+                        </div>
+        
+                        <!-- 是否再多抽一支籤結果 -->
+                        <div id="moreThrowResult" class="result-container mb-4"></div>
+        
+                        <h2 class="text-center mb-4">結果</h2>
+        
+                        <!-- 此次籤詩 -->
+                        <h3 class="text-center mb-3">此次籤詩</h3>
+                        <div id="currentPoem" class="result-container mb-4"></div>
+        
+                        <!-- 已抽到的籤 -->
+                        <h3 class="text-center mb-3">已抽到的籤</h3>
+                        <div id="drawnPoems" class="result-container mb-4"></div>
                     </div>
-    
-                    <!-- 結果區塊 -->
-                    <div id="result" class="result-container mb-4"></div>
-    
-                    <!-- 是否再多抽一支籤按鈕 -->
-                    <div class="button-group d-flex justify-content-center gap-3 mb-3">
-                        <button id="moreThrowBtn" class="btn btn-primary" disabled>擲杯，是否再多抽一支籤</button>
+
+                    <div id="block4" class="hidden-block">
+                        <!-- 結果區塊 -->
+                        <div id="interpretationResult" class="result-container mb-4"></div>
+                        <!-- 已抽到的籤 -->
+                        <h3 class="text-center mb-3">已抽到的籤</h3>
+                        <div id="interpretationDrawnPoems" class="result-container mb-4"></div>
                     </div>
-    
-                    <!-- 是否再多抽一支籤結果 -->
-                    <div id="moreThrowResult" class="result-container mb-4"></div>
-    
-                    <h2 class="text-center mb-4">結果</h2>
-    
-                    <!-- 此次籤詩 -->
-                    <h3 class="text-center mb-3">此次籤詩</h3>
-                    <div id="currentPoem" class="result-container mb-4"></div>
-    
-                    <!-- 已抽到的籤 -->
-                    <h3 class="text-center mb-3">已抽到的籤</h3>
-                    <div id="drawnPoems" class="result-container mb-4"></div>
                 </section>
             </div>
         </div>
