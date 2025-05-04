@@ -33,6 +33,39 @@ function showBlock(blockNumber) {
 // --- END NEW ---
 
 document.addEventListener("DOMContentLoaded", function() {
+    
+    const inputs = document.querySelectorAll('input, textarea'); // 選擇所有 input 和 textarea
+    let lastScrollY = 0; // 用來儲存最後滾動位置的變數
+
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            // 當輸入框獲得焦點時，記錄當前的垂直滾動位置
+            lastScrollY = window.scrollY;
+            // console.log('輸入框聚焦，記錄滾動位置:', lastScrollY); // 可選：用於除錯
+        });
+
+        input.addEventListener('blur', function() {
+            // 當輸入框失去焦點時 (通常表示鍵盤即將收回)
+            // console.log('輸入框失焦，準備恢復滾動位置至:', lastScrollY); // 可選：用於除錯
+
+            // 使用 setTimeout 給瀏覽器一點時間處理鍵盤收回和視窗大小調整
+            setTimeout(() => {
+                // 嘗試將頁面滾動回之前記錄的位置
+                window.scrollTo(0, lastScrollY);
+
+                // (可選) 增加一個小的二次檢查：有時瀏覽器在 scrollTo 後可能還會微調
+                // 如果滾動位置不對，可以再嘗試滾動一次，但通常不需要
+                // setTimeout(() => {
+                //     if (window.scrollY !== lastScrollY) {
+                //          console.log('二次檢查，再次滾動至:', lastScrollY); // 可選：用於除錯
+                //          window.scrollTo(0, lastScrollY);
+                //     }
+                // }, 50); // 第二次檢查的延遲要短
+
+            }, 100); // 延遲時間 (毫秒)，可能需要根據實際情況微調
+        });
+    });
+
     document.getElementById("drawBtn").addEventListener("click", startDraw);
     document.getElementById("throwBtn").addEventListener("click", startThrow);
     document.getElementById("interpretBtn").addEventListener("click", interpretLottery);

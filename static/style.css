@@ -8,47 +8,22 @@ body {
     background-image: url("images/god_back.jpg");
 }
 
-/* 📌 固定選單列 */
-header {
-    background-color: #8B0000;
-    color: white;
-    padding: 10px 20px;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-}
-
-nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-}
-
-nav ul li {
-    margin: 0 15px;
-}
-
-nav ul li a {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-}
-
-nav ul li a:hover {
-    text-decoration: underline;
-}
-
 /* 📌 主體內容 */
 main {
     margin-top: 80px; /* 避免被固定選單遮擋 */
 }
 /* 手機版時調整 main 的 margin-top */
 @media (max-width: 1024px) {
-    .container-fluid {
-        margin-top: 220px !important; /* 手機版根據 header 高度調整 */
+    header {
+        background-color: #8B0000;
+        color: white;
+        padding: 10px 20px;
+        position: sticky;   /* 使用 sticky */
+        top: 0;             /* 必須指定 top, right, bottom 或 left 其中之一，讓它知道在哪裡 '黏住' */
+        width: 100%;
+        z-index: 1000;
     }
+
     /* 手機版直播區域 */
     .mobile-stream-container {
         position: relative;
@@ -59,6 +34,7 @@ main {
     .live-stream {
         width: 100%;
         height: 100%;
+        margin-top: 50px;
     }
 
     .live-stream-container {
@@ -80,8 +56,8 @@ main {
 
     .user-camera-overlay {
         position: absolute;
-        top: 10px;
-        left: 10px;
+        top: -50px;
+        left: 0px;
         width: 120px;
         height: 90px;
         background-color: rgba(255, 255, 255, 0.9);
@@ -96,8 +72,8 @@ main {
 
     .god-stream-overlay {
         position:absolute;
-        top: 10px;
-        right: 10px;
+        top: -50px;
+        right: 0px;
         width: 90px;
         height: auto;
         background-color: rgba(255, 255, 255, 0.9);
@@ -105,9 +81,52 @@ main {
         z-index: 1001;
     }
 
+    .extra {
+        padding-top: 0px !important;
+    }
+
+    h2 {
+        display: none;
+    }
+
+    /*  詢問區域 */
+    .my-5{
+        margin-top: 0 !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 0rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.25rem !important;
+    }
+
+    .form-label{
+        font-size: 15px;
+        margin-bottom: 0.15rem !important;
+    }
+
+    .form-text {
+        margin-bottom: 0rem !important;
+        margin-top: 0rem !important;
+    }
+
+    .form-text {
+        font-size: 0.75rem !important;
+    }
+
+    .btn ,.result-container{
+        font-size: 0.85rem !important;
+    }
+
+    .result-container {
+        margin: 0.5rem !important;
+        padding: 10px 20px !important;
+    }
 }
 
-/* 📌 詢問區域 */
+/*  詢問區域 */
 .extra {
     margin: 0 auto;
     max-width: 600px;
